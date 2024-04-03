@@ -1,4 +1,4 @@
-## IDCE-376_GroupProject
+## IDCE-376_FinalProject
 
 ### Jason Andrews, Clark University MSGIS, 2024
 ### IDCE 376, Spatial Database Management, Spring 2024
