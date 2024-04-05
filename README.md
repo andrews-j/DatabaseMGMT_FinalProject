@@ -6,4 +6,4 @@
 
 This repository contains submissions pertaining to final project work for IDCE 376.
 
-The assignment description can be viewed in the *Assignment_Description.pdf* document. 
+The assignment description can be viewed in the *Final_Project-Rubric.pdf* document. 
