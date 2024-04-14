@@ -19,6 +19,13 @@ Methods and background provided in Elmes et al., 2016:
 
 https://www.sciencedirect.com/science/article/abs/pii/S0924271616303653
 
+### Tree Point Layers
+
+#### 2023 Resurvey
+This layer includes detailed information on 3559 trees that were planted in 2010, 2011, or 2012, 1974 of these were surveyed in 2014, 2015, or 2016, and all were resurveyed in the summer and fall of 2024.
+
+#### Initial Planting Dataset
+This layer comprises planting location and initial data for 9376 trees planted by the DCR in 2010, 2011, and 2012, of which the above 3559 are a subset. This data is very messy, will probably only be utilized for planting locations. 
 
 ## **Raster Layers**
 
