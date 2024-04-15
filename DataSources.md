@@ -15,7 +15,7 @@ https://www.mass.gov/info-details/massgis-data-2020-us-census
 #### 2008, 2010, 2015 Worcester Canopy Cover Vector Layers
 These layers were produced by former HERO research coordinator and Clark PhD student Arthur Elmes. 
 
-Methods and background provided in Elmes et al., 2016:
+Methods and background provided in Elmes et al., 2017:
 
 https://www.sciencedirect.com/science/article/abs/pii/S0924271616303653
 
