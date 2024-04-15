@@ -24,7 +24,7 @@ I also have two different layers containing information about nearly 10,000 tree
 
 Raster images include NDBI (Normalized Differenced Built Index), NDVI (Normalized Differenced Vegetation Index), and UVI (Urban Vegetation Index) from 5 different time points: 2007, 2011, 2015, 2019, and 2023, clipped to Worcester city limits. 
 
-Raster images were aquired with PySTAC. Each is a median composite image between March 15 and September 15 of the chosen year. See Get_Images.ipynb.
+Raster images were aquired with PySTAC. Each is a median composite image between March 15 and September 15 of the chosen year. See GetWorcesterImages.ipynb.
 
 All data is kept in, or reprojected to EPSG 32619 WGS 84/ UTM Zone 19N.
 
