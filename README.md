@@ -1,4 +1,4 @@
-## IDCE-376_FinalProject
+## IDCE-376 FinalProject: Green Space and Demographics in Worcester, MA
 
 ### Jason Andrews, Clark University MSGIS, 2024
 ### IDCE 376, Spatial Database Management, Spring 2024
