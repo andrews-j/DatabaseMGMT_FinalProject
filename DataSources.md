@@ -10,6 +10,32 @@ https://www.mass.gov/info-details/massgis-data-2010-us-census
 #### 2020 MA census:
 https://www.mass.gov/info-details/massgis-data-2020-us-census
 
+### Center for Disease Control (CDC):
+
+#### 2010-2015 Life Expectancy by Census Tract:
+
+https://www.cdc.gov/nchs/data-visualization/life-expectancy/index.html
+
+Visualization:
+![image](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/bc0c58b7-76e5-43d5-8257-027a9ed4eec3)
+
+### American Community Survery (ACS):
+
+#### 2020 Percent of Population 25 and over with Bachelors Degree
+https://www.arcgis.com/home/item.html?id=84e3022a376e41feb4dd8addf25835a3#overview
+
+Visualization:
+![image](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/28c1748c-8291-4b9f-aabb-6b255cbe5632)
+
+#### 2020 Population whose income in the past 12 months is below federal poverty level
+
+https://www.arcgis.com/home/item.html?id=0e468b75bca545ee8dc4b039cbb5aff6
+
+Visualization:
+
+![image](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/7a4b4a56-ad2e-4b35-b8c9-58fa58dcdd95)
+
+
 ### Canopy Cover Layers
 
 #### 2008, 2010, 2015 Worcester Canopy Cover Vector Layers
@@ -34,3 +60,8 @@ This layer comprises planting location and initial data for 9376 trees planted b
 See getWorcesterImages.ipynb for details on image aquisition. 
 
 All images are derived from Landsat surface reflectance products.
+
+#### NDBI 2007:
+![image](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/30970c0e-9b5a-4aff-bf36-43c09fff765e)
+
+
