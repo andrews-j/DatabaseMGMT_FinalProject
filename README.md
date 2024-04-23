@@ -1,4 +1,4 @@
-# Green Space and Demographics in Worcester, MA
+# Urban Greenery and Demographics in Worcester, MA
 
 ### IDCE 376, Spatial Database Management, Spring 2024
 #### Jason Andrews, Clark University MSGIS, 2024
@@ -7,30 +7,60 @@ This repository contains submissions pertaining to final project work for IDCE 3
 
 The assignment description can be viewed in the *Final_Project-Rubric.pdf* document.
 
-For more information on how data was obtained, please see DataSources.md
+# Introduction
 
-## Objective: 
+### Objective: 
 Combine infomation from census and ASC data to create an HDI by census tract layer for Worcester, and compare this to metrics of urban canopy/greenness.
 
 ### Research Questions:
 - How does urban canopy correlate with our combined measure of economic mobility, educational attainment, and population health?
 - Has this relationship changed over time?
 
-## Part 1: Importing and Processing Data
+### Study Area:
 
-### Vector layers
-
-The study area is the city limits of Worcester, and the spatial scale of the analysis will be the 44 census districts in Worcester, as visualized below:
+The study area is the city limits of Worcester, and the spatial scale of the analysis will be the 44 census tracts in Worcester, as visualized below:
 
 ![Screenshot 2024-04-14 at 9 27 33 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/5a63beb5-057f-4372-af2c-cbc16d154f6a)
 
-Census layers from 2010 and 2020, with information about total population, and racial composition of each census tract. This is a subset of the 2010 census data:
+## Part 1: Data Aquisition
+
+For  information on where data was obtained, please see DataSources.md
+
+### Vector Layers:
+
+**2010 and 2020 Census**
+
+These layers contain information about total population, and racial composition for each census tract. 
+
+See **Cenus2010_cleaning.ipynb** and **Cenus2020_cleaning.ipynb** in the Scripts folder.
+
+This is a subset of the 2010 census data:
 
 ![Screenshot 2024-04-14 at 9 30 35 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/7008a268-850c-4f0c-860a-d656f19596c2)
 
-Two different layers containing information about nearly 10,000 trees planted in Worcester County in 2010-2012 through a Massachussets Department of Conservation and Recreation (MA DCR) tree planting program.
+**CDC Life Expectancy by Census Tract**
+
+See **CDC_LE_Processing.ipynb**
+
+<img width="988" alt="Screenshot 2024-04-23 at 5 24 03 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/518b066e-ffc0-4c58-8fdc-acd15e518d1d">
+
+**American Community Survey-- Percent of Population with Income below Federal Poverty Line**
+
+Both ASC layers were manually cleaned in QGIS
+
+<img width="907" alt="Screenshot 2024-04-23 at 5 28 13 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/fec9c855-032f-4ec7-b7f4-874d48ad379d">
+
+**American Community Survey-- Percent of Population with Bachelor's Degrees**
+
+<img width="885" alt="Screenshot 2024-04-23 at 5 27 22 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/44e13066-00a2-4863-8861-f135bee7ee15">
+
+**Tree Planting Points**
+
+Point layer of nearly 10,000 trees planted in Worcester County in 2010-2012 through a Massachussets Department of Conservation and Recreation (MA DCR) tree planting program.
 
 ![Screenshot 2024-04-14 at 9 35 29 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/f1710f8f-d12c-4d8e-834c-b92846e08c8e)
+
+**Canopy Cover Maps**
 
 Worcester canopy cover vector layers from 2008, 2010, and 2015.
 
@@ -39,7 +69,7 @@ Canopy cover 2010 detail:
 <img width="609" alt="Screenshot 2024-04-15 at 1 38 04 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/a1878029-529c-48d9-a247-01cd1bda83af">
 
 
-### Raster Layers
+### Raster Layers:
 
 Raster images include NDBI (Normalized Differenced Built Index), NDVI (Normalized Differenced Vegetation Index), and UVI (Urban Vegetation Index) from 5 different time points: 2007, 2011, 2015, 2019, and 2023, clipped to Worcester city limits. 
 
@@ -61,7 +91,9 @@ Examples:
 
 ![Screenshot 2024-04-14 at 9 45 19 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/9b0eef3e-7da8-4072-a880-4ab88805d2b3)
 
-#### Importing data to SQL
+## Part 2: Importing Data to SQL
+
+**See *ShellCommands.sh* for more details**
 
 This is the script I used in CLI to batch import vector files into my database, which is called finalProj:
 
@@ -109,8 +141,64 @@ BEGIN
 END $$;
 ```
 
-The result, at this point, is that we have quite a lot of tables, 38 to be exact.
-<img width="360" alt="Screenshot 2024-04-15 at 1 30 11 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/7032f3a3-8734-4241-9992-31bc9049d365">
+The result, at this point, is that we have quite a lot of tables, 41 to be exact.
+
+<img width="354" alt="Screenshot 2024-04-23 at 6 09 33 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/5f62c549-f437-4ccc-99a9-492039556156">
+
+## Part 3: Create Composite HDI
+
+Now we are going to use the life expectancy estimate, percent of population in poverty, and percent of population with a bachelor's degree to create an HDI measure for each tract. To do this we will normalize each measure to an index between 0 and 1, which will then be used to weight each evenly in our final composite index.
+
+See FinalProj_SQL.sql for more details, but here is the fun part, combining the relevant columns to a single table:
+
+```SQL
+CREATE TABLE hdi_calc AS
+SELECT
+    l.tract,
+    l."life expec",
+    p.povper,
+    e.perbach
+FROM
+    le_tracts l
+JOIN
+    woo_poverty_2020 p ON l.tract = p.tract
+JOIN
+    woo_education_2020 e ON l.tract = e.tract;
+```
+This is what our table looks like:
+
+<img width="1017" alt="Screenshot 2024-04-23 at 7 21 02 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/06fc47c8-6b8f-4a87-9338-e0e91ff07fb7">
 
 
+Now we will calculate a 0-1 normalized value for each
+```SQL
+SELECT 
+    MIN(life_exp) AS min_life_exp,
+    MAX(life_exp) AS max_life_exp,
+    MIN(povper) AS min_povper,
+    MAX(povper) AS max_povper,
+    MIN(perbach) AS min_perbach,
+    MAX(perbach) AS max_perbach
+INTO 
+    min_max_values
+FROM 
+    hdi_calc;
 
+ALTER TABLE hdi_calc
+ADD COLUMN pov_norm NUMERIC,
+ADD COLUMN ed_norm NUMERIC,
+ADD COLUMN le_norm NUMERIC;
+
+UPDATE hdi_calc
+SET 
+    le_norm = (life_exp - (SELECT min_life_exp FROM min_max_values)) / 
+                          ((SELECT max_life_exp FROM min_max_values) - (SELECT min_life_exp FROM min_max_values)),
+    pov_norm = (povper - (SELECT min_povper FROM min_max_values)) / 
+                        ((SELECT max_povper FROM min_max_values) - (SELECT min_povper FROM min_max_values)),
+    ed_norm = (perbach - (SELECT min_perbach FROM min_max_values)) / 
+                         ((SELECT max_perbach FROM min_max_values) - (SELECT min_perbach FROM min_max_values));
+```
+Which brings us to here:
+<img width="978" alt="Screenshot 2024-04-23 at 7 33 17 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/40ed4333-b740-4312-9a8f-96d703171d73">
+
+Notice that there are a few tracts without life expectancy data. We will subsitute an average value in those cases.
