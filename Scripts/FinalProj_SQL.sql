@@ -32,3 +32,107 @@ END $$;
 SELECT	*
 FROM	ndbi_2007_points
 WHERE	NULLIF(val, 'NaN') IS NOT NULL;
+
+
+-- Next, we need to standardize tract values
+ALTER TABLE public.woo_poverty_2020
+RENAME COLUMN "name" TO "tract";
+
+-- Remove the string and space to the left of the number
+UPDATE woo_poverty_2020
+SET tract = REGEXP_REPLACE(tract, '[^0-9.]+', '', 'g');
+
+-- Add .0 to numbers that don't have a decimal
+UPDATE woo_poverty_2020
+SET tract = tract || '.0'
+WHERE tract !~ '[.]';
+
+ALTER TABLE woo_poverty_2020
+ALTER COLUMN tract TYPE NUMERIC;
+
+-- Alter 'tract' column to NUMERIC data type
+ALTER TABLE woo_poverty_2020
+ALTER COLUMN tract TYPE NUMERIC
+USING tract::NUMERIC;
+
+-- View 5 entries from this column:
+SELECT tract
+FROM woo_poverty_2020
+LIMIT 5;
+
+-- And do the same for woo_education_2020
+ALTER TABLE public.woo_education_2020
+RENAME COLUMN "name" TO "tract";
+
+-- Remove the string and space to the left of the number
+UPDATE woo_education_2020
+SET tract = REGEXP_REPLACE(tract, '[^0-9.]+', '', 'g');
+
+-- Alter 'tract' column to NUMERIC data type
+ALTER TABLE woo_education_2020
+ALTER COLUMN tract TYPE NUMERIC
+USING tract::NUMERIC;
+
+-- Add .0 to numbers that don't have a decimal
+UPDATE woo_education_2020
+SET tract = tract || '.0'
+WHERE tract !~ '[.]';
+
+-- Also make sure that le_tract 'tract' column is numeric
+ALTER TABLE le_tracts
+ALTER COLUMN tract TYPE NUMERIC
+USING tract::NUMERIC;
+
+-- ALso, the life expectancy column in le_tracts has a space in it. that's not cool. Lets fix that
+-- Change the name of the column from 'life expec' to 'LifeExp'
+ALTER TABLE le_tracts
+RENAME COLUMN "life expec" TO life_exp;
+
+
+-- And combine the relevant columns to a new table:
+CREATE TABLE hdi_calc AS
+SELECT
+    l.tract,
+    l.life_exp,
+    p.povper,
+    e.perbach,
+    l.geom
+FROM
+    le_tracts l
+JOIN
+    woo_poverty_2020 p ON l.tract = p.tract
+JOIN
+    woo_education_2020 e ON l.tract = e.tract;
+
+
+SELECT 
+    MIN(life_exp) AS min_life_exp,
+    MAX(life_exp) AS max_life_exp,
+    MIN(povper) AS min_povper,
+    MAX(povper) AS max_povper,
+    MIN(perbach) AS min_perbach,
+    MAX(perbach) AS max_perbach
+INTO 
+    min_max_values
+FROM 
+    hdi_calc;
+
+ALTER TABLE hdi_calc
+ADD COLUMN pov_norm NUMERIC,
+ADD COLUMN ed_norm NUMERIC,
+ADD COLUMN le_norm NUMERIC;
+
+UPDATE hdi_calc
+SET 
+    le_norm = (life_exp - (SELECT min_life_exp FROM min_max_values)) / 
+                          ((SELECT max_life_exp FROM min_max_values) - (SELECT min_life_exp FROM min_max_values)),
+    pov_norm = (povper - (SELECT min_povper FROM min_max_values)) / 
+                        ((SELECT max_povper FROM min_max_values) - (SELECT min_povper FROM min_max_values)),
+    ed_norm = (perbach - (SELECT min_perbach FROM min_max_values)) / 
+                         ((SELECT max_perbach FROM min_max_values) - (SELECT min_perbach FROM min_max_values));
+
+-- Ckeck out our table with normalized values
+SELECT hdi_calc.*, 
+       except geom
+FROM hdi_calc
+LIMIT 5;
