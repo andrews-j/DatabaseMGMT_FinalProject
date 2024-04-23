@@ -1,8 +1,7 @@
-# IDCE-376 FinalProject: Green Space and Demographics in Worcester, MA
+# Green Space and Demographics in Worcester, MA
 
-### Jason Andrews, Clark University MSGIS, 2024
 ### IDCE 376, Spatial Database Management, Spring 2024
-### Professor Jonathan Ocon and TA Kunal Malhan
+#### Jason Andrews, Clark University MSGIS, 2024
 
 This repository contains submissions pertaining to final project work for IDCE 376.
 
@@ -10,11 +9,16 @@ The assignment description can be viewed in the *Final_Project-Rubric.pdf* docum
 
 For more information on how data was obtained, please see DataSources.md
 
+## Objective: 
+Combine infomation from census and ASC data to create an HDI by census tract layer for Worcester, and compare this to metrics of urban canopy/greenness.
+
+### Research Questions:
+- How does urban canopy correlate with our combined measure of economic mobility, educational attainment, and population health?
+- Has this relationship changed over time?
+
 ## Part 1: Importing and Processing Data
 
-This study will examine the relationship between urban greenery/canopy cover and certain economic and social measures in Worcester, Massachussets. 
-
-#### Vector layers
+### Vector layers
 
 The study area is the city limits of Worcester, and the spatial scale of the analysis will be the 44 census districts in Worcester, as visualized below:
 
@@ -35,7 +39,7 @@ Canopy cover 2010 detail:
 <img width="609" alt="Screenshot 2024-04-15 at 1 38 04 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/a1878029-529c-48d9-a247-01cd1bda83af">
 
 
-#### Raster Layers
+### Raster Layers
 
 Raster images include NDBI (Normalized Differenced Built Index), NDVI (Normalized Differenced Vegetation Index), and UVI (Urban Vegetation Index) from 5 different time points: 2007, 2011, 2015, 2019, and 2023, clipped to Worcester city limits. 
 
