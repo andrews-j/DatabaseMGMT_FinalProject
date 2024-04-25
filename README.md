@@ -320,14 +320,24 @@ SET h_tree_i = (pov_norm + ed_norm + le_norm+per_canopy_norm) / 4;
 ```
 
 Brilliant!
-Screenshot 2024-04-24 at 10.59.54 PM
+
+<img width="1257" alt="Screenshot 2024-04-24 at 10 59 54 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/4285388c-c8d8-4296-ae4f-6fda7c4bcc5d">
 
 
 
 
+## Part 5: Visualize and Analyze
 
+HDI
 
 ![Screenshot 2024-04-24 at 10 12 02 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/c2cddbef-93c8-412b-8504-16057ff5edb4)
 
+Versus H Tree I
+
 ![Screenshot 2024-04-24 at 10 11 18 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/00052bb6-a787-4ca7-a61f-96ae9ed1eb76)
 
+HDI Diff
+
+This image depicts which areas are underrepresented with canopy, in regards to thier HDI
+
+![Screenshot 2024-04-24 at 11 26 51 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/b056eb15-233f-42fa-8fce-4fc843fdf617)
