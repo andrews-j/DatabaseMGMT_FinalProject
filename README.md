@@ -206,6 +206,127 @@ Which brings us to here:
 
 Notice that there are a few tracts without life expectancy data. We will subsitute an average value in those cases.
 
+One thing we need to do is reverse the poverty index. Poverty is bad, higher rates bring down HDI. 
+
+```SQL
+-- Update the hdi_calc table with reversed normalized poverty rates:
+UPDATE hdi_calc AS h
+SET 
+    pov_norm = 1 - ((h.perpov - (SELECT min_perpov FROM min_max_values)) / 
+                        NULLIF((SELECT max_perpov FROM min_max_values) - (SELECT min_perpov FROM min_max_values), 0));
+```
+
+<img width="1044" alt="Screenshot 2024-04-24 at 10 41 45 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/0332c189-1621-4b68-a465-beac622067c8">
+
+Now lets calculate our HDI index by tract:
+```sql
+ALTER TABLE hdi_calc
+ADD COLUMN hdi NUMERIC;
+
+UPDATE hdi_calc
+SET hdi = (pov_norm + ed_norm + le_norm) / 3;
+```
+<img width="1214" alt="Screenshot 2024-04-24 at 10 46 20 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/95d4f811-d0db-4e8b-bc21-35a0d6eba322">
+
+We now have HDI by tract calculated. Let's bring in canopy data. 
+
+## Part 4: H Tree I:
+
+Start by calculating percent canopy per tract, in a new table
+
+```sql
+-- Get canopy area by tract in meters2
+CREATE TABLE canopy_cover_by_tract AS
+SELECT
+    h.tract,
+    SUM(ST_Area(ST_Intersection(h.geom, canopy.geom))) AS total_canopy_area
+FROM
+    hdi_calc h
+LEFT JOIN
+    canopy_2015 canopy ON ST_Intersects(h.geom, canopy.geom)
+GROUP BY
+    h.tract;
+```
+And bring in tract area
+
+```sql
+-- Create tract_area column in our new table with on the fly area calculation from hdi_calc 'geom'
+UPDATE canopy_cover_by_tract AS c
+SET tract_area = h.area_sqm
+FROM (
+    SELECT 
+        tract,
+        ST_Area(geom) AS area_sqm
+    FROM 
+        hdi_calc
+) AS h
+WHERE c.tract = h.tract;
+```
+
+And calculate percent canopy by tract
+```sql
+ALTER TABLE canopy_cover_by_tract
+ADD COLUMN per_canopy NUMERIC;
+
+-- Update the per_canopy column with the calculated percent canopy cover
+UPDATE canopy_cover_by_tract
+SET per_canopy = (total_canopy_area / tract_area) * 100;
+```
+
+<img width="501" alt="Screenshot 2024-04-24 at 10 55 41 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/b78f4b7a-469b-43d3-a874-7cd28cb38598">
+
+Now bring percent canopy in as a column in 'hdi_calc'
+```sql
+-- Add a per_canopy column to the canopy_cover_by_tract table
+ALTER TABLE canopy_cover_by_tract
+ADD COLUMN per_canopy NUMERIC;
+
+-- Update the per_canopy column with the calculated percent canopy cover
+UPDATE canopy_cover_by_tract
+SET per_canopy = (total_canopy_area / tract_area) * 100;
+
+SELECT tract, total_canopy_area, tract_area, per_canopy
+FROM canopy_cover_by_tract
+LIMIT 5;
+```
+And normalize it as a 0-1 index
+```sql
+SELECT
+    MIN(per_canopy) AS min_per_canopy,
+    MAX(per_canopy) AS max_per_canopy
+INTO
+    min_max_per_canopy
+FROM
+    canopy_cover_by_tract;
+
+ALTER TABLE hdi_calc
+ADD COLUMN per_canopy_norm NUMERIC;
+```
+
+Finally, use the percent canopy normalized index to creat H Tree I
+```sql
+-- Update hdi_calc with normalized per_canopy values
+UPDATE
+    hdi_calc
+SET
+    per_canopy_norm = (per_canopy - (SELECT min_per_canopy FROM min_max_per_canopy)) /
+                      ((SELECT max_per_canopy FROM min_max_per_canopy) - (SELECT min_per_canopy FROM min_max_per_canopy));
+
+ALTER TABLE hdi_calc
+ADD COLUMN h_tree_i NUMERIC;
+
+UPDATE hdi_calc
+SET h_tree_i = (pov_norm + ed_norm + le_norm+per_canopy_norm) / 4;
+```
+
+Brilliant!
+Screenshot 2024-04-24 at 10.59.54 PM
+
+
+
+
+
+
 ![Screenshot 2024-04-24 at 10 12 02 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/c2cddbef-93c8-412b-8504-16057ff5edb4)
 
 ![Screenshot 2024-04-24 at 10 11 18 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/00052bb6-a787-4ca7-a61f-96ae9ed1eb76)
