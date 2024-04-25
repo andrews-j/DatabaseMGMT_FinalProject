@@ -1,0 +1,23 @@
+
+
+-- And do the same for woo_education_2020
+ALTER TABLE public.woo_education_2020
+RENAME COLUMN "name" TO "tract";
+
+-- Remove the string and space to the left of the number
+UPDATE woo_education_2020
+SET tract = REGEXP_REPLACE(tract, '[^0-9.]+', '', 'g');
+
+-- Add .0 to numbers that don't have a decimal
+UPDATE woo_education_2020
+SET tract = tract || '.0'
+WHERE tract !~ '[.]';
+
+-- Remove the string and space to the left of the number
+UPDATE woo_poverty_2020
+SET tract = REGEXP_REPLACE(tract, '[^0-9.]+', '', 'g');
+
+-- Add .0 to numbers that don't have a decimal
+UPDATE woo_poverty_2020
+SET tract = tract || '.0'
+WHERE tract !~ '[.]';

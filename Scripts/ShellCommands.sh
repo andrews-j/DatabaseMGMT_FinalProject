@@ -5,7 +5,7 @@
 # And pipe a vector into a .sql command file
 shp2pgsql -s 32619 -I census2010.shp public.census2010 > vectorImport.sql
 
-shp2pgsql -s 32619 -I woo_poverty_2020.shp public.woo_poverty_2020 > vectorImport.sql
+shp2pgsql -s 32619 -I LE_tracts.shp public.le_tracts > vectorImport.sql
 
 
 # Then call that command
@@ -43,4 +43,4 @@ done
 
 
 # Enter SQL shell:
-\dt
+psql -d finalProj -U postgres -p 5433

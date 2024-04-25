@@ -7,9 +7,8 @@ SELECT	CAST((ST_PixelAsPoints(rast)).val AS DECIMAL) AS float_val,
 		(ST_PixelAsPoints(rast)).*
 FROM	ndbi_2007;
 
-
--- Use this nifty script to iterate through every file that begins with either ndvi, ndbi, or uvi and run the transformation on them
--- File name will be {filename}_points
+-- Better yet, use this nifty script to iterate through every file that begins with either ndvi, ndbi, or uvi and run the transformation on them
+-- Filename will be {filename}_points
 DO $$
 DECLARE
     raster_table_name TEXT;
@@ -24,77 +23,49 @@ BEGIN
     END LOOP;
 END $$;
 
-
 -- Important:
--- Even converted to vector, these files can behave very strangely in pgAdmin, or however the table is being viewed.
--- Run this command on one of the _points table to verify. 
+-- Even as vector points, this data can behave very strangely in pgAdmin, it is hard to visualize/confirm you have valid values
+-- Run this command on one of the _points tables to verify. 
 -- If in pgAdmin scrolling down will load more points
 SELECT	*
 FROM	ndbi_2007_points
 WHERE	NULLIF(val, 'NaN') IS NOT NULL;
 
 
--- Next, we need to standardize tract values
-ALTER TABLE public.woo_poverty_2020
-RENAME COLUMN "name" TO "tract";
-
--- Remove the string and space to the left of the number
-UPDATE woo_poverty_2020
-SET tract = REGEXP_REPLACE(tract, '[^0-9.]+', '', 'g');
-
--- Add .0 to numbers that don't have a decimal
-UPDATE woo_poverty_2020
-SET tract = tract || '.0'
-WHERE tract !~ '[.]';
-
-ALTER TABLE woo_poverty_2020
-ALTER COLUMN tract TYPE NUMERIC;
+-- Creating HDI index
+-- First, we need to standardize tract values/column names, and data types
 
 -- Alter 'tract' column to NUMERIC data type
 ALTER TABLE woo_poverty_2020
 ALTER COLUMN tract TYPE NUMERIC
 USING tract::NUMERIC;
-
--- View 5 entries from this column:
-SELECT tract
-FROM woo_poverty_2020
-LIMIT 5;
-
--- And do the same for woo_education_2020
-ALTER TABLE public.woo_education_2020
-RENAME COLUMN "name" TO "tract";
-
--- Remove the string and space to the left of the number
-UPDATE woo_education_2020
-SET tract = REGEXP_REPLACE(tract, '[^0-9.]+', '', 'g');
 
 -- Alter 'tract' column to NUMERIC data type
 ALTER TABLE woo_education_2020
 ALTER COLUMN tract TYPE NUMERIC
 USING tract::NUMERIC;
 
--- Add .0 to numbers that don't have a decimal
-UPDATE woo_education_2020
-SET tract = tract || '.0'
-WHERE tract !~ '[.]';
-
 -- Also make sure that le_tract 'tract' column is numeric
 ALTER TABLE le_tracts
 ALTER COLUMN tract TYPE NUMERIC
 USING tract::NUMERIC;
 
--- ALso, the life expectancy column in le_tracts has a space in it. that's not cool. Lets fix that
+-- View 5 entries from this column:
+SELECT tract
+FROM le_tracts
+LIMIT 5;
+
+-- ALso, the life expectancy column in le_tracts has a space in it. That's not cool. Lets fix that.
 -- Change the name of the column from 'life expec' to 'LifeExp'
 ALTER TABLE le_tracts
 RENAME COLUMN "life expec" TO life_exp;
 
-
--- And combine the relevant columns to a new table:
+--Combine the relevant columns to a new table:
 CREATE TABLE hdi_calc AS
 SELECT
     l.tract,
     l.life_exp,
-    p.povper,
+    p.perpov,
     e.perbach,
     l.geom
 FROM
@@ -105,11 +76,12 @@ JOIN
     woo_education_2020 e ON l.tract = e.tract;
 
 
+-- This section creates columns containing normalized 0-1 values for each metric
 SELECT 
     MIN(life_exp) AS min_life_exp,
     MAX(life_exp) AS max_life_exp,
-    MIN(povper) AS min_povper,
-    MAX(povper) AS max_povper,
+    MIN(perpov) AS min_perpov,
+    MAX(perpov) AS max_perpov,
     MIN(perbach) AS min_perbach,
     MAX(perbach) AS max_perbach
 INTO 
@@ -126,13 +98,160 @@ UPDATE hdi_calc
 SET 
     le_norm = (life_exp - (SELECT min_life_exp FROM min_max_values)) / 
                           ((SELECT max_life_exp FROM min_max_values) - (SELECT min_life_exp FROM min_max_values)),
-    pov_norm = (povper - (SELECT min_povper FROM min_max_values)) / 
-                        ((SELECT max_povper FROM min_max_values) - (SELECT min_povper FROM min_max_values)),
+    pov_norm = (perpov - (SELECT min_perpov FROM min_max_values)) / 
+                        ((SELECT max_perpov FROM min_max_values) - (SELECT min_perpov FROM min_max_values)),
     ed_norm = (perbach - (SELECT min_perbach FROM min_max_values)) / 
                          ((SELECT max_perbach FROM min_max_values) - (SELECT min_perbach FROM min_max_values));
 
 -- Ckeck out our table with normalized values
-SELECT hdi_calc.*, 
-       except geom
-FROM hdi_calc
+SELECT
+    tract,
+    life_exp,
+    perpov,
+    perbach,
+    pov_norm,
+    ed_norm,
+    le_norm
+FROM
+    hdi_calc
 LIMIT 5;
+
+
+-- Poverty is a bad thing so we need to reverse that index:
+
+-- Update the hdi_calc table with reversed normalized poverty rates:
+UPDATE hdi_calc AS h
+SET 
+    pov_norm = 1 - ((h.perpov - (SELECT min_perpov FROM min_max_values)) / 
+                        NULLIF((SELECT max_perpov FROM min_max_values) - (SELECT min_perpov FROM min_max_values), 0));
+
+
+ALTER TABLE hdi_calc
+ADD COLUMN hdi NUMERIC;
+
+UPDATE hdi_calc
+SET hdi = (pov_norm + ed_norm + le_norm) / 3;
+
+-- Check it out:
+SELECT
+    tract,
+    life_exp,
+    perpov,
+    perbach,
+    pov_norm,
+    ed_norm,
+    le_norm,
+    per_canopy,
+    hdi
+FROM
+    hdi_calc
+LIMIT 5;
+
+
+-- Now we bring in Canopy data
+-- Adapted from Charlotte group project script
+-- Get canopy area by tract in meters2
+CREATE TABLE canopy_cover_by_tract AS
+SELECT
+    h.tract,
+    SUM(ST_Area(ST_Intersection(h.geom, canopy.geom))) AS total_canopy_area
+FROM
+    hdi_calc h
+LEFT JOIN
+    canopy_2015 canopy ON ST_Intersects(h.geom, canopy.geom)
+GROUP BY
+    h.tract;
+
+-- Nice. Check out a preview:
+SELECT tract, total_canopy_area
+FROM canopy_cover_by_tract
+LIMIT 5;
+
+-- Create tract_area column in our new table with on the fly area calculation from hdi_calc 'geom'
+UPDATE canopy_cover_by_tract AS c
+SET tract_area = h.area_sqm
+FROM (
+    SELECT 
+        tract,
+        ST_Area(geom) AS area_sqm
+    FROM 
+        hdi_calc
+) AS h
+WHERE c.tract = h.tract;
+
+SELECT tract, total_canopy_area, tract_area
+FROM canopy_cover_by_tract
+LIMIT 5;
+
+-- Add a per_canopy column to the canopy_cover_by_tract table
+ALTER TABLE canopy_cover_by_tract
+ADD COLUMN per_canopy NUMERIC;
+
+-- Update the per_canopy column with the calculated percent canopy cover
+UPDATE canopy_cover_by_tract
+SET per_canopy = (total_canopy_area / tract_area) * 100;
+
+SELECT tract, total_canopy_area, tract_area, per_canopy
+FROM canopy_cover_by_tract
+LIMIT 5;
+
+SELECT
+    tract,
+    life_exp,
+    perpov,
+    perbach,
+    pov_norm,
+    ed_norm,
+    le_norm,
+    per_canopy
+FROM
+    hdi_calc
+LIMIT 5;
+
+-- normalize per_canopy:
+-- Calculate the minimum and maximum values of per_canopy
+SELECT
+    MIN(per_canopy) AS min_per_canopy,
+    MAX(per_canopy) AS max_per_canopy
+INTO
+    min_max_per_canopy
+FROM
+    canopy_cover_by_tract;
+
+ALTER TABLE hdi_calc
+ADD COLUMN per_canopy_norm NUMERIC;
+
+
+-- Update hdi_calc with normalized per_canopy values
+UPDATE
+    hdi_calc
+SET
+    per_canopy_norm = (per_canopy - (SELECT min_per_canopy FROM min_max_per_canopy)) /
+                      ((SELECT max_per_canopy FROM min_max_per_canopy) - (SELECT min_per_canopy FROM min_max_per_canopy));
+
+ALTER TABLE hdi_calc
+ADD COLUMN h_tree_i NUMERIC;
+
+UPDATE hdi_calc
+SET h_tree_i = (pov_norm + ed_norm + le_norm+per_canopy_norm) / 4;
+
+SELECT
+    tract,
+    pov_norm,
+    ed_norm,
+    le_norm,
+    per_canopy,
+    hdi,
+    per_canopy_norm,
+    h_tree_i
+FROM
+    hdi_calc
+LIMIT 5;
+
+ALTER TABLE hdi_calc
+ADD COLUMN hdi_diff NUMERIC;
+
+UPDATE hdi_calc
+SET hdi_diff = (h_tree_i - hdi);
+
+hti['hdi_diff'] = hti[''] - hti['hdi']
