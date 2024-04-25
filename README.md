@@ -46,7 +46,9 @@ See **CDC_LE_Processing.ipynb**
 
 **American Community Survey-- Percent of Population with Income below Federal Poverty Line**
 
-Both ASC layers were manually cleaned in QGIS
+Both ASC layers were manually cleaned in QGIS, with further cleaning in python. The most tedious part of this entire process was merging census areas that were split betwen the 2010 and 2020 census.
+
+See **ACS_2020_Merge.ipynb**
 
 <img width="907" alt="Screenshot 2024-04-23 at 5 28 13 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/fec9c855-032f-4ec7-b7f4-874d48ad379d">
 
@@ -199,6 +201,12 @@ SET
                          ((SELECT max_perbach FROM min_max_values) - (SELECT min_perbach FROM min_max_values));
 ```
 Which brings us to here:
-<img width="978" alt="Screenshot 2024-04-23 at 7 33 17 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/40ed4333-b740-4312-9a8f-96d703171d73">
+
+<img width="1033" alt="Screenshot 2024-04-24 at 8 46 46 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/9b0b7359-a081-4633-b0a3-4777d4526080">
 
 Notice that there are a few tracts without life expectancy data. We will subsitute an average value in those cases.
+
+![Screenshot 2024-04-24 at 10 12 02 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/c2cddbef-93c8-412b-8504-16057ff5edb4)
+
+![Screenshot 2024-04-24 at 10 11 18 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/00052bb6-a787-4ca7-a61f-96ae9ed1eb76)
+
