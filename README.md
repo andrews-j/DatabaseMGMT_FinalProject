@@ -212,8 +212,7 @@ One thing we need to do is reverse the poverty index. Poverty is bad, higher rat
 -- Update the hdi_calc table with reversed normalized poverty rates:
 UPDATE hdi_calc AS h
 SET 
-    pov_norm = 1 - ((h.perpov - (SELECT min_perpov FROM min_max_values)) / 
-                        NULLIF((SELECT max_perpov FROM min_max_values) - (SELECT min_perpov FROM min_max_values), 0));
+    pov_norm = 1 - (h.pov_norm);
 ```
 
 <img width="1044" alt="Screenshot 2024-04-24 at 10 41 45 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/0332c189-1621-4b68-a465-beac622067c8">
@@ -277,17 +276,12 @@ SET per_canopy = (total_canopy_area / tract_area) * 100;
 
 Now bring percent canopy in as a column in 'hdi_calc'
 ```sql
--- Add a per_canopy column to the canopy_cover_by_tract table
-ALTER TABLE canopy_cover_by_tract
-ADD COLUMN per_canopy NUMERIC;
+ALTER TABLE hdi_calc ADD COLUMN per_canopy NUMERIC;
 
--- Update the per_canopy column with the calculated percent canopy cover
-UPDATE canopy_cover_by_tract
-SET per_canopy = (total_canopy_area / tract_area) * 100;
-
-SELECT tract, total_canopy_area, tract_area, per_canopy
-FROM canopy_cover_by_tract
-LIMIT 5;
+UPDATE hdi_calc AS h
+SET per_canopy = c.per_canopy
+FROM canopy_cover_by_tract AS c
+WHERE h.tract = c.tract;
 ```
 And normalize it as a 0-1 index
 ```sql
