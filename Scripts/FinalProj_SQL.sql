@@ -30,6 +30,7 @@ END $$;
 SELECT	*
 FROM	ndbi_2007_points
 WHERE	NULLIF(val, 'NaN') IS NOT NULL;
+-- ORDER BY val DESC;
 
 
 -- Creating HDI index
@@ -122,8 +123,7 @@ LIMIT 5;
 -- Update the hdi_calc table with reversed normalized poverty rates:
 UPDATE hdi_calc AS h
 SET 
-    pov_norm = 1 - ((h.perpov - (SELECT min_perpov FROM min_max_values)) / 
-                        NULLIF((SELECT max_perpov FROM min_max_values) - (SELECT min_perpov FROM min_max_values), 0));
+    pov_norm = 1 - (h.pov_norm);
 
 
 ALTER TABLE hdi_calc
@@ -195,6 +195,16 @@ SELECT tract, total_canopy_area, tract_area, per_canopy
 FROM canopy_cover_by_tract
 LIMIT 5;
 
+-- Bring that column in to hdi_calc
+ALTER TABLE hdi_calc ADD COLUMN per_canopy NUMERIC;
+
+UPDATE hdi_calc AS h
+SET per_canopy = c.per_canopy
+FROM canopy_cover_by_tract AS c
+WHERE h.tract = c.tract;
+
+
+
 SELECT
     tract,
     life_exp,
@@ -254,4 +264,50 @@ ADD COLUMN hdi_diff NUMERIC;
 UPDATE hdi_calc
 SET hdi_diff = (h_tree_i - hdi);
 
-hti['hdi_diff'] = hti[''] - hti['hdi']
+-- Python: hti['hdi_diff'] = hti[''] - hti['hdi']
+
+
+-- Ok, now let's try it with some of the raster to point data:
+-- First try it on one table
+CREATE TABLE ndvi_by_year AS
+SELECT
+    h.tract,
+    AVG(ndvi_points.float_val) AS avg_ndvi
+FROM
+    hdi_calc h
+JOIN
+    ndvi_2007_points ndvi_points ON ST_Intersects(h.geom, ndvi_points.geom)
+-- Add more JOIN clauses for other ndvi tables if needed
+GROUP BY
+    h.tract;
+
+--or, go though a set at a time
+CREATE TABLE ndvi_by_year AS
+SELECT
+    h.tract,
+    AVG(ndvi_2007.float_val) AS avg_ndvi_2007,
+    AVG(ndvi_2011.float_val) AS avg_ndvi_2011,
+    AVG(ndvi_2015.float_val) AS avg_ndvi_2015,
+    AVG(ndvi_2019.float_val) AS avg_ndvi_2019,
+    AVG(ndvi_2023.float_val) AS avg_ndvi_2023
+FROM
+    hdi_calc h
+LEFT JOIN
+    ndvi_2007_points ndvi_2007 ON ST_Intersects(h.geom, ndvi_2007.geom)
+LEFT JOIN
+    ndvi_2011_points ndvi_2011 ON ST_Intersects(h.geom, ndvi_2011.geom)
+LEFT JOIN
+    ndvi_2015_points ndvi_2015 ON ST_Intersects(h.geom, ndvi_2015.geom)
+LEFT JOIN
+    ndvi_2019_points ndvi_2019 ON ST_Intersects(h.geom, ndvi_2019.geom)
+LEFT JOIN
+    ndvi_2023_points ndvi_2023 ON ST_Intersects(h.geom, ndvi_2023.geom)
+-- Add more JOIN clauses for other ndvi tables if needed
+GROUP BY
+    h.tract;
+
+
+SELECT *
+FROM
+    ndvi_by_year
+LIMIT 5;
