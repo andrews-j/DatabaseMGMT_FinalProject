@@ -332,6 +332,40 @@ Versus H Tree I
 
 HDI Diff
 
-This image depicts which areas are underrepresented with canopy, in regards to thier HDI
+This image depicts which how the index for each tract changed with the addition of canopy as 1/4 of the composite index.
 
 ![Screenshot 2024-04-24 at 11 26 51 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/b056eb15-233f-42fa-8fce-4fc843fdf617)
+
+Comparing this map to HDI (sans canopy) seems to suggest that areas with low initial HDI actually drop when adding the canopy index. 
+
+Let's check out a regression between HDI and HDI change:
+
+![Screenshot 2024-04-25 at 1 20 02 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/6f8bf1f6-a55d-4c39-aa04-1e5b850d9d21)
+
+And our initial impression is, on average, correct. Or in other words, as initial HDI increases, so does the amount that the composite index increases when you add canopy cover. 
+
+This suggests that canopy cover is more unequal than the population level metrics of well being that comprise HDI, on average. 
+
+## Further questions:
+
+### How to measure well being
+
+How do we measure well-being, socio-economic or otherwise, by census tract? What do we care about? Environmental justice criteria are often used in this way. According to [mass.gov](https://www.mass.gov/info-details/environmental-justice-populations-in-massachusetts), Environmental Justice communities are defined as a community where one or more of the following criteria are met:
+
+- The annual median household income is 65 percent or less of the statewide annual median household income
+- Minorities make up 40 percent or more of the population
+- 25 percent or more of households identify as speaking English less than "very well"
+- Minorities make up 25 percent or more of the population and the annual median household income of the municipality in which the neighborhood is located does not exceed 150 percent of the statewide annual median household income.
+
+I am curious to what extent this lense on well being would correlate with the HDI measure that I calculated here. There is also the CDC's social vulerability index, which includes as many as 15 different metrics. It is a complex sociological question to consider which of these is the most 'valid' measure of community level well being, or even more generally what metrics we care about most and how we measure them. I want to keep thinking about this. 
+
+### Increase statistical robustness
+
+The biggest adjustment that I could make to my statistical methods to increase the robustness of this analysis is using z-scores (0-1 indexes) from a wider dataset than just Worcester. For example:
+The canopy index here compares only Worcester cenusus tracts with other Worcester census tracts. However, Worcester may have a higher canopy cover percentage than most comparable cities. In which case a canopy index score on the low end of this analysis may not be so bad, when stacked up against other cities, particularly controlling for HDI. 
+
+In other words, low HDI areas that dropped even more when the local canopy z-score was factored in, may in fact be more leafy than comparable neighborhoods in other cities. An analysis bringing in data from other cities would contextualize the H Tree I index by comparing it to tracts beyond just Worcester.
+
+### Work out SQL raster issues
+
+I've been largely stymied in my attempts to directly analyze rasters in SQL. Null values pop up where there are in fact valid values in the pre-import raster. Being able to use rasters in this analysis would be illuminating, particularly being able to compare how closely NDBI, NDVI, or UVI lines up with canopy cover percentage, and potentially combining these into a composite urban greenery index.
