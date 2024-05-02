@@ -306,8 +306,68 @@ LEFT JOIN
 GROUP BY
     h.tract;
 
-
 SELECT *
 FROM
     ndvi_by_year
 LIMIT 5;
+
+
+
+
+
+--- OK, lets try some raster operations:
+
+-- Maybe we start by putting our rasters into tables, rather than being all seperate:
+CREATE TABLE ndbi_rasts (
+    name VARCHAR,
+    rast RASTER
+);
+
+CREATE TABLE ndvi_rasts (
+    name VARCHAR,
+    rast RASTER
+);
+
+CREATE TABLE uvi_rasts (
+    name VARCHAR,
+    rast RASTER
+);
+
+
+INSERT INTO ndbi_rasts (name, rast)
+SELECT 
+    name,
+    rast
+WHERE 
+    name LIKE '%ndbi%';
+
+
+
+-- Create a new table to store the results
+CREATE TABLE tract_avg_uvi (
+    tract VARCHAR(255) PRIMARY KEY,
+    avg_uvi DOUBLE PRECISION
+);
+
+-- Populate the new table with the average UVI value for each tract
+INSERT INTO tract_avg_uvi (tract, avg_uvi)
+SELECT
+    le.tract,
+    AVG(uvi.val) AS avg_uvi
+FROM
+    le_tracts le
+JOIN
+    (
+        SELECT
+            le.tract,
+            ST_Intersects(uvi.rast, le.geom) AS rast_intersection,
+            ST_ValueCount(ST_Intersects(uvi.rast, le.geom)) AS val_count
+        FROM
+            le_tracts le
+        JOIN
+            uvi_2007 uvi ON ST_Intersects(uvi.rast, le.geom)
+    ) AS uvi_intersection ON le.tract = uvi_intersection.tract
+CROSS JOIN LATERAL
+    unnest(uvi_intersection.val_count) AS uvi(val, count)
+GROUP BY
+    le.tract;
