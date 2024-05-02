@@ -64,12 +64,15 @@ Point layer of nearly 10,000 trees planted in Worcester County in 2010-2012 thro
 
 **Canopy Cover Maps**
 
-Worcester canopy cover vector layers from 2008, 2010, and 2015.
+Worcester canopy cover vector layers from 2008, 2010, and 2015. See DataSources.md for information on how these were created. 
 
-Canopy cover 2010 detail:
+Canopy cover 2015:
 
-<img width="609" alt="Screenshot 2024-04-15 at 1 38 04 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/a1878029-529c-48d9-a247-01cd1bda83af">
+<img width="863" alt="Screenshot 2024-05-02 at 1 02 25 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/a6580457-e629-4d79-863d-6a21710b7e64">
 
+Canopy Cover 2015 detail:
+
+<img width="844" alt="Screenshot 2024-05-02 at 1 03 43 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/bba5ab87-a17f-4ab6-ad5b-cdb49bdefaf7">
 
 ### Raster Layers:
 
@@ -83,15 +86,11 @@ Examples:
 
 **NDBI 2007**
 
-![Screenshot 2024-04-14 at 9 42 27 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/45c41895-83cd-4436-9c0f-aa02297040d5)
+<img width="637" alt="Screenshot 2024-05-02 at 2 31 19 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/d53fd787-772e-418d-a5aa-624f806ac45c">
 
-**NDVI 2015**
+**NDVI 2007**
 
-![Screenshot 2024-04-14 at 9 44 33 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/c88b0a3a-00e9-4f8e-8cdc-a72ef3384706)
-
-**UVI 2023**
-
-![Screenshot 2024-04-14 at 9 45 19 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/9b0eef3e-7da8-4072-a880-4ab88805d2b3)
+<img width="635" alt="Screenshot 2024-05-02 at 2 35 19 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/1b80456a-d100-4fc5-b000-c588108a8ead">
 
 ## Part 2: Importing Data to SQL
 
