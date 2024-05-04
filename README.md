@@ -13,7 +13,7 @@ The assignment description can be viewed in the *Final_Project-Rubric.pdf* docum
 Combine infomation from census and ASC data to create an HDI by census tract layer for Worcester, and compare this to metrics of urban canopy/greenness.
 
 ### Research Questions:
-- How does urban canopy correlate with our combined measure of economic mobility, educational attainment, and population health?
+- How does urban canopy correlate with a combined measure of economic mobility, educational attainment, and population health?
 - Has this relationship changed over time?
 
 ### Study Area:
@@ -40,6 +40,8 @@ This is a subset of the 2010 census data:
 
 **CDC Life Expectancy by Census Tract**
 
+No data for tracts comprising Clark University, College of the Holy Cross, and Great Brook Valley public housing. 
+
 See **CDC_LE_Processing.ipynb**
 
 <img width="988" alt="Screenshot 2024-04-23 at 5 24 03 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/518b066e-ffc0-4c58-8fdc-acd15e518d1d">
@@ -64,7 +66,7 @@ Point layer of nearly 10,000 trees planted in Worcester County in 2010-2012 thro
 
 **Canopy Cover Maps**
 
-Worcester canopy cover vector layers from 2008, 2010, and 2015. See DataSources.md for information on how these were created. 
+Worcester canopy cover vector layers from 2008, 2010, and 2015. See **DataSources.md** for information on how these were created. 
 
 Canopy cover 2015:
 
@@ -78,7 +80,7 @@ Canopy Cover 2015 detail:
 
 Raster images include NDBI (Normalized Differenced Built Index), NDVI (Normalized Differenced Vegetation Index), and UVI (Urban Vegetation Index) from 5 different time points: 2007, 2011, 2015, 2019, and 2023, clipped to Worcester city limits. 
 
-Raster images were aquired with PySTAC. Each is a median composite image between March 15 and September 15 of the chosen year. See GetWorcesterImages.ipynb.
+Raster images were aquired with PySTAC. Each is a median composite image between March 15 and September 15 of the chosen year. See **GetWorcesterImages.ipynb**.
 
 All data is kept in, or reprojected to EPSG 32619 WGS 84/ UTM Zone 19N.
 
@@ -123,7 +125,7 @@ done
 
 ```
 
-Once the rasters are added to the database they must be converted to vector. This is the SQL batch command used to convert all ndbi, ndvi, and uvi images in the database to points.
+Once the rasters are added to the database they must be converted to vector point data in order to be used in spatial queries. This is the SQL batch command used to convert all ndbi, ndvi, and uvi images in the database to points.
 See finalProj_SQL.sql for more details.
 
 ```sql
@@ -203,9 +205,9 @@ Which brings us to here:
 
 <img width="1033" alt="Screenshot 2024-04-24 at 8 46 46 PM" src="https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/9b0b7359-a081-4633-b0a3-4777d4526080">
 
-Notice that there are a few tracts without life expectancy data. We will subsitute an average value in those cases.
+Notice that there are a few tracts without life expectancy data. We could subsitute an average value in those cases, but for now we will leave them as NaN.
 
-One thing we need to do is reverse the poverty index. Poverty is bad, higher rates bring down HDI. 
+One thing we need to do is reverse the poverty index. Poverty is bad, higher rates should bring down HDI. 
 
 ```SQL
 -- Update the hdi_calc table with reversed normalized poverty rates:
@@ -325,31 +327,31 @@ HDI
 
 ![Screenshot 2024-04-24 at 10 12 02 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/c2cddbef-93c8-412b-8504-16057ff5edb4)
 
-Versus H Tree I
+H Tree I (HDI +  normalized canopy cover percentage by tract)
 
 ![Screenshot 2024-04-24 at 10 11 18 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/00052bb6-a787-4ca7-a61f-96ae9ed1eb76)
 
 HDI Diff
 
-This image depicts which how the index for each tract changed with the addition of canopy as 1/4 of the composite index.
+This image depicts how the HDI for each tract changes with the addition of canopy as 1/4 of the composite index.
 
 ![Screenshot 2024-04-24 at 11 26 51 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/b056eb15-233f-42fa-8fce-4fc843fdf617)
 
-Comparing this map to HDI (sans canopy) seems to suggest that areas with low initial HDI actually drop when adding the canopy index. 
+Comparing this map to HDI (sans canopy) seems to suggest that areas with low initial HDI actually drop when adding the canopy index. Or in other words, that canopy cover is, on average, less equal than HDI, by tract in Worcester. 
 
 Let's check out a regression between HDI and HDI change:
 
 ![Screenshot 2024-04-25 at 1 20 02 PM](https://github.com/andrews-j/IDCE-376_FinalProject/assets/26927475/6f8bf1f6-a55d-4c39-aa04-1e5b850d9d21)
 
-And our initial impression is, on average, correct. Or in other words, as initial HDI increases, so does the amount that the composite index increases when you add canopy cover. 
+And this initial impression is, on average, correct, though it is a weak correlation. As initial HDI increases, so does the amount that the composite index increases when you add canopy cover. 
 
-This suggests that canopy cover is more unequal than the population level metrics of well being that comprise HDI, on average. 
+This suggests, again, that canopy cover is less equal than the population level metrics of well being that comprise HDI, on average. 
 
 ## Further questions:
 
 ### How to measure well being
 
-How do we measure well-being, socio-economic or otherwise, by census tract? What do we care about? Environmental justice criteria are often used in this way. According to [mass.gov](https://www.mass.gov/info-details/environmental-justice-populations-in-massachusetts), Environmental Justice communities are defined as a community where one or more of the following criteria are met:
+How do we measure well-being, socio-economic or otherwise, by census tract? What do we care about? No matter what we use, it is a proxy for something that is very hard to define, human flourishing. Environmental justice criteria are often for this purpose. According to [mass.gov](https://www.mass.gov/info-details/environmental-justice-populations-in-massachusetts), Environmental Justice communities are defined as a community where one or more of the following criteria are met:
 
 - The annual median household income is 65 percent or less of the statewide annual median household income
 - Minorities make up 40 percent or more of the population
