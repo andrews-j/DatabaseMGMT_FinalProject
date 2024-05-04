@@ -362,11 +362,14 @@ I am curious to what extent this lense on well being would correlate with the HD
 
 ### Increase statistical robustness
 
-The biggest adjustment that I could make to my statistical methods to increase the robustness of this analysis is using z-scores (0-1 indexes) from a wider dataset than just Worcester. For example:
-The canopy index here compares only Worcester cenusus tracts with other Worcester census tracts. However, Worcester may have a higher canopy cover percentage than most comparable cities. In which case a canopy index score on the low end of this analysis may not be so bad, when stacked up against other cities, particularly controlling for HDI. 
+The biggest adjustment that I could make to my statistical methods to increase the robustness of this analysis is using z-scores (0-1 indexes) from a wider dataset than just Worcester. 
+
+For example:
+
+The canopy index here compares only Worcester cenusus tracts with other Worcester census tracts. However, Worcester may have a higher canopy cover percentage than most comparable cities. In which case a canopy index score on the low end of this analysis may not be so bad, when stacked up against similar neighborhoods in other cities, when controlling for HDI. 
 
 In other words, low HDI areas that dropped even more when the local canopy z-score was factored in, may in fact be more leafy than comparable neighborhoods in other cities. An analysis bringing in data from other cities would contextualize the H Tree I index by comparing it to tracts beyond just Worcester.
 
 ### Work out SQL raster issues
 
-I've been largely stymied in my attempts to directly analyze rasters in SQL. Null values pop up where there are in fact valid values in the pre-import raster. Being able to use rasters in this analysis would be illuminating, particularly being able to compare how closely NDBI, NDVI, or UVI lines up with canopy cover percentage, and potentially combining these into a composite urban greenery index.
+I've been largely stymied in my attempts to directly analyze rasters in SQL. Null values pop up where there are in fact valid values in the pre-import raster. Being able to use rasters in this analysis would be illuminating, particularly being able to compare how closely NDBI, NDVI, or UVI lines up with canopy cover percentage, and potentially combining these into a composite urban greenery index. In the short term I will move forward with the analysis in Python, until I can understand what the issue is with SQL. 
