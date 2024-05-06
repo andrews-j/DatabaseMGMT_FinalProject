@@ -341,6 +341,74 @@ SELECT
 WHERE 
     name LIKE '%ndbi%';
 
+-- Here is an extremely verbose way to put all your rasters into one table:
+-- But it is nice to have overview information like this
+
+-- Step 1: Create the new raster table
+CREATE TABLE consolidated_raster_table (
+    rid SERIAL PRIMARY KEY,
+    r_table_catalog TEXT,
+    r_table_schema TEXT,
+    r_table_name TEXT,
+    r_raster_column TEXT,
+    srid INTEGER,
+    scale_x DOUBLE PRECISION,
+    scale_y DOUBLE PRECISION,
+    blocksize_x INTEGER,
+    blocksize_y INTEGER,
+    same_alignment BOOLEAN,
+    regular_blocking BOOLEAN,
+    num_bands INTEGER,
+    pixel_types TEXT[],
+    nodata_values TEXT[],
+    out_db TEXT[],
+    extent GEOMETRY,
+    spatial_index BOOLEAN
+);
+
+-- Step 2: Insert data from existing raster tables into the new table
+INSERT INTO consolidated_raster_table (
+    r_table_catalog,
+    r_table_schema,
+    r_table_name,
+    r_raster_column,
+    srid,
+    scale_x,
+    scale_y,
+    blocksize_x,
+    blocksize_y,
+    same_alignment,
+    regular_blocking,
+    num_bands,
+    pixel_types,
+    nodata_values,
+    out_db,
+    extent,
+    spatial_index
+)
+SELECT
+    r_table_catalog,
+    r_table_schema,
+    r_table_name,
+    r_raster_column,
+    srid,
+    scale_x,
+    scale_y,
+    blocksize_x,
+    blocksize_y,
+    same_alignment,
+    regular_blocking,
+    num_bands,
+    pixel_types,
+    nodata_values,
+    out_db,
+    extent,
+    spatial_index
+FROM raster_columns;
+
+
+
+
 
 
 -- Create a new table to store the results
